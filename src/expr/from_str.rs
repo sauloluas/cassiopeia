@@ -23,7 +23,7 @@ impl std::error::Error for ParseError {}
 
 impl<T> std::str::FromStr for Expr<T> 
 where 
-	T: std::str::FromStr + Clone
+	T: std::str::FromStr + Clone + PartialEq
 {
 	type Err = ParseError;
 
@@ -34,7 +34,7 @@ where
 }
 
 impl<T> TryFrom<TokenParser<T>> for Expr<T> 
-where T: Clone
+where T: Clone + PartialEq
 {
 	type Error = ParseError;
 
@@ -43,7 +43,7 @@ where T: Clone
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token<T> {
 	Num(T),
 	Name(String),
@@ -78,7 +78,7 @@ pub struct TokenParser<T> {
 	ptr: usize,
 }
 
-impl<T: Clone> TokenParser<T> {
+impl<T: Clone + PartialEq> TokenParser<T> {
 	pub fn new(tokens: Vec<Token<T>>) -> Self {
 		TokenParser { 
 			tokens, 
@@ -99,6 +99,13 @@ impl<T: Clone> TokenParser<T> {
 
 	pub fn peek(&self) -> Option<&Token<T>> {
 		self.tokens.get(self.ptr)
+	}
+
+	pub fn expect(&mut self, expected: Token<T>) -> Result<(), ParseError> {
+		match self.consume() {
+			Some(t) if *t == expected => Ok(()),
+			_ => Err(ParseError::UnexpectedToken),
+		}
 	}
 
 	pub fn run(&mut self) -> ParseRlt<T> {
@@ -134,7 +141,22 @@ impl<T: Clone> TokenParser<T> {
 		let mut expr = self.parse_factor()?;
 		while let Some(tok) = self.peek().cloned() {
 			match tok {
+				Token::Times | Token::Frac => {
+					self.consume();
+					let right = self.parse_factor()?;
+					expr = match tok {
+						Token::Times => Expr::Times(
+							Box::new(expr), 
+							Box::new(right)
+						),
+						Token::Frac => Expr::Frac(
+							Box::new(expr), 
+							Box::new(right)
+						),
+						_ => unreachable!(),
+					};
 
+				},
 				_ => break,
 			}
 		}
@@ -145,32 +167,23 @@ impl<T: Clone> TokenParser<T> {
 		match self.consume() {
 			Some(Token::Num(n)) => Ok(Expr::Val(n.clone())),
 			Some(Token::Name(n)) => Ok(Expr::Var(n.clone())),
-
+			Some(Token::LParen) => {
+				let expr = self.parse_expr()?;
+				self.expect(Token::RParen)?;
+				Ok(expr)
+			},
+			Some(Token::Minus) => Ok(Expr::Neg(
+				Box::new(self.parse_factor()?)
+			)),
 			_ => Err(ParseError::UnexpectedToken),
 		}
 	}
 }
 
 
-		// if self.tokens.len() == 1 {
-		// 	self.tokens[0].clone().parse()
-		// } else {
-		// 	match self.consume() {
-		// 		Some(Token::Plus) => {
-		// 			let mut l_branch = self.split_off();
-		// 			Ok(Expr::Plus(
-		// 				Box::new(self.run()?), 
-		// 				Box::new(l_branch.run()?)
-		// 			))
-		// 		},
-
-		// 		_ => Err(ParseError::UnexpectedToken),
-		// 	}
-		// }
-
 
 impl<T> std::str::FromStr for TokenParser<T> 
-where T: std::str::FromStr + Clone
+where T: std::str::FromStr + Clone + PartialEq
 {
 	type Err = ParseError;
 
@@ -181,7 +194,7 @@ where T: std::str::FromStr + Clone
 
 		while let Some(c) = chars.next() {
 			match c {
-				' ' => tokens.push(Space),
+				' ' => continue,
 				'+' => tokens.push(Plus),
 				'-' => tokens.push(Minus),
 				'/' => tokens.push(Frac),

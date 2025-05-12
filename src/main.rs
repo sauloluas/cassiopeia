@@ -1,18 +1,13 @@
-
+use cassiopeia as cas;
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    use symcom::Expr::{self, *};
+    use cas::Expr::{self, *};
 
-    let s: symcom::expr::from_str::TokenParser<f64> = "2+a".parse()?;
-    println!("{:#?}", s.clone());
+    let s: cas::expr::from_str::TokenParser<f64> = "5-(a*b)+(d-40)".parse()?;
     println!("");
     let s = Expr::try_from(s)?;
     println!("{s:#?}");
-    // let equation = a2.equals(c);    // 2a = 6
-    // let solution = equation.solve();
-
-    // println!("{equation:#?}");
     Ok(())
 
 }

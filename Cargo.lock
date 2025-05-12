@@ -3,13 +3,13 @@
 version = 4
 
 [[package]]
-name = "lin2"
-version = "0.1.0"
-source = "git+https://github.com/sauloluas/lin2.git#eedcb3b6d0cddccc9b41bdb2687772f049302845"
-
-[[package]]
-name = "symcom"
+name = "cassiopeia"
 version = "0.1.0"
 dependencies = [
  "lin2",
 ]
+
+[[package]]
+name = "lin2"
+version = "0.1.0"
+source = "git+https://github.com/sauloluas/lin2.git#eedcb3b6d0cddccc9b41bdb2687772f049302845"

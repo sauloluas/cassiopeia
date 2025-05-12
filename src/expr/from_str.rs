@@ -205,10 +205,14 @@ where T: std::str::FromStr + Clone + PartialEq
 				'=' => tokens.push(Equals),
 				'0'..='9' | '.' => {
 					let mut num = String::from(c);
+					let mut scalar = false;
 					while let Some(next_c) = chars.peek() {
 						if next_c.is_ascii_digit() || *next_c == '.' {
 							num.push(*next_c);
 							chars.next();
+						} else if next_c.is_alphabetic() {
+							scalar = true;
+							break;
 						} else {
 							break;
 						}
@@ -216,6 +220,9 @@ where T: std::str::FromStr + Clone + PartialEq
 					let value = num.parse::<T>()
 						.map_err(|_| ParseError::InvalidNumber(num))?;
 					tokens.push(Num(value));
+					if scalar {
+						tokens.push(Times);
+					}
 				},
 				'a'..='z' | 'A'..'Z' => {
 					let mut ident = String::from(c);

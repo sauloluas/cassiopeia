@@ -20,7 +20,7 @@ pub enum Expr<T> {
 }
 
 impl<T> Expr<T> {
-    pub fn new_var(name: &str) -> Expr<T> {
+    pub fn var(name: &str) -> Expr<T> {
         Expr::Var(name.to_string())
     }
 }

@@ -1,4 +1,5 @@
 use crate::Expr;
+use linearspace as lin;
 
 
 impl<T> Expr<T> 
@@ -6,8 +7,8 @@ where
     T: std::ops::Add<Output = T> 
     + std::ops::Mul<Output = T> 
     + std::ops::Sub<Output = T>
-    + lin2::Zero
-    + lin2::One
+    + lin::Zero
+    + lin::One
 {
     pub fn eval(self) -> T {
         use Expr::*;

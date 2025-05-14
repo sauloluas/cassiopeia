@@ -1,3 +1,4 @@
+pub mod dyad_op;
 pub mod expr;
 pub mod simplify;
 pub mod eval;

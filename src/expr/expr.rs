@@ -1,3 +1,5 @@
+use super::dyad_op::DyadOp::{self, *};
+
 
 pub type ExprRef<T> = Box<Expr<T>>;
 
@@ -11,11 +13,7 @@ pub enum Expr<T> {
     Undef,
     Inf,
     Neg(ExprRef<T>),
-    Plus(ExprRef<T>, ExprRef<T>),
-    Times(ExprRef<T>, ExprRef<T>),
-    Minus(ExprRef<T>, ExprRef<T>),
-    Frac(ExprRef<T>, ExprRef<T>),
-    Power(ExprRef<T>, ExprRef<T>),
+    Dyad(DyadOp, ExprRef<T>, ExprRef<T>),
     Equals(ExprRef<T>, ExprRef<T>),
 }
 
@@ -29,7 +27,7 @@ impl<T> std::ops::Add for Expr<T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Expr::Plus(Box::new(self), Box::new(rhs))
+        Expr::Dyad(Plus, Box::new(self), Box::new(rhs))
     }
 }
 
@@ -37,7 +35,7 @@ impl<T> std::ops::Sub for Expr<T> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Expr::Minus(Box::new(self), Box::new(rhs))
+        Expr::Dyad(Minus, Box::new(self), Box::new(rhs))
     }
 }
 
@@ -45,7 +43,7 @@ impl<T> std::ops::Mul for Expr<T> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Expr::Times(Box::new(self), Box::new(rhs))
+        Expr::Dyad(Times, Box::new(self), Box::new(rhs))
     }
 }
 
@@ -53,7 +51,7 @@ impl<T> std::ops::Div for Expr<T> {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        Expr::Frac(Box::new(self), Box::new(rhs))
+        Expr::Dyad(Frac, Box::new(self), Box::new(rhs))
     }
 }
 
@@ -86,8 +84,7 @@ where T: std::fmt::Display
             Sym(v, _) => write!(f, "{v}"),
             Zero => write!(f, "0"),
             One => write!(f, "1"),
-            Plus(a, b) => write!(f, "{a} + {b}"),
-            Minus(a, b) => write!(f, "{a} - {b}"),
+            Dyad(op, a, b) => write!(f, "{a} {op} {b}"),
             _ => todo!(),
         }
     }
